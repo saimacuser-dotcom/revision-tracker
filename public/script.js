@@ -1,5 +1,5 @@
 /* ─── CONFIG ─── */
-  const BASE = "http://localhost:8000/api";
+const BASE = "https://revision-tracker-backend.onrender.com/api";
   /* ─── STATE ─── */
   let token           = localStorage.getItem("token");
   let allProblems     = [];
