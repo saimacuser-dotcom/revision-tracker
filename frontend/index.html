@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RevTrack — DSA Revision Tracker</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ── AUTH PAGE ── -->
+<div id="authPage">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">RT</div>
+      <div class="auth-logo-text">Rev<span>Track</span></div>
+    </div>
+    <div id="authTitle">Welcome back</div>
+    <div class="auth-sub" id="authSub">Sign in to continue your revision streak.</div>
+
+    <div class="field" id="nameField" style="display:none">
+      <label>Display Name</label>
+      <input id="displayName" placeholder="Your name" />
+    </div>
+    <div class="field">
+      <label>Email Address</label>
+      <input id="email" type="email" placeholder="you@example.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="password" type="password" placeholder="••••••••" />
+    </div>
+
+    <button class="btn-primary" id="authBtn" onclick="submitAuth()">Sign In</button>
+
+    <div class="auth-toggle">
+      <span id="authToggleText">Don't have an account?</span>
+      <a onclick="toggleAuth()" id="authToggleLink"> Register</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app" class="hidden">
+
+  <nav class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-brand-icon">RT</div>
+      Rev<span>Track</span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-pill">
+        <div class="user-avatar" id="userAvatar">U</div>
+        <span class="user-name" id="userEmail">—</span>
+      </div>
+      <button class="btn-ghost" onclick="logout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="main">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card streak-card">
+        <div class="stat-label">🔥 Current Streak</div>
+        <div class="stat-value" id="streak">0</div>
+        <div class="stat-sub">days in a row</div>
+      </div>
+      <div class="stat-card total-card">
+        <div class="stat-label">📦 Total Problems</div>
+        <div class="stat-value" id="totalCount">0</div>
+        <div class="stat-sub">logged so far</div>
+      </div>
+      <div class="stat-card easy-card">
+        <div class="stat-label">✅ Easy</div>
+        <div class="stat-value" id="easyCount">0</div>
+        <div class="stat-sub">problems</div>
+      </div>
+      <div class="stat-card hard-card">
+        <div class="stat-label">🔴 Hard</div>
+        <div class="stat-value" id="hardCount">0</div>
+        <div class="stat-sub">problems</div>
+      </div>
+    </div>
+
+    <!-- TODAY'S REVISION -->
+    <div class="panel">
+      <div class="panel-header today-header">
+        <div class="panel-title">
+          <div class="panel-icon orange">📅</div>
+          Due for Revision Today
+          <span class="badge orange" id="todayBadge">0</span>
+        </div>
+      </div>
+      <ul id="todayList"></ul>
+    </div>
+
+    <!-- ADD PROBLEM -->
+    <div class="panel add-panel" id="addPanel">
+      <div class="add-toggle-header" onclick="toggleAddPanel()">
+        <div class="panel-title">
+          <div class="panel-icon blue">＋</div>
+          Add New Problem
+        </div>
+        <div class="add-toggle-icon">+</div>
+      </div>
+      <div class="add-body">
+        <div class="field" style="margin:0">
+          <label>Problem Name</label>
+          <input id="name" placeholder="e.g. Two Sum" />
+        </div>
+        <div class="field" style="margin:0">
+          <label>Problem Link</label>
+          <input id="link" placeholder="https://leetcode.com/..." />
+        </div>
+        <div class="field" style="margin:0">
+          <label>Difficulty</label>
+          <select id="difficulty">
+            <option>Easy</option>
+            <option>Medium</option>
+            <option>Hard</option>
+          </select>
+        </div>
+        <button class="btn-add" onclick="addProblem()">Add Problem</button>
+      </div>
+    </div>
+
+    <!-- ALL PROBLEMS -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-icon blue">📋</div>
+          All Problems
+          <span class="badge blue" id="countBadge">0</span>
+        </div>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="setFilter('All', this)">All</button>
+          <button class="filter-btn" onclick="setFilter('Easy', this)">Easy</button>
+          <button class="filter-btn" onclick="setFilter('Medium', this)">Medium</button>
+          <button class="filter-btn" onclick="setFilter('Hard', this)">Hard</button>
+        </div>
+      </div>
+      <ul id="list"></ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- DELETE MODAL -->
+<div id="deleteModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h3>Delete Problem</h3>
+    <p>This will permanently remove this problem from your list. This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
