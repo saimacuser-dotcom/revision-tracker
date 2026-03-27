@@ -21,16 +21,13 @@ app.get("/", (req, res) => {
 });
 
 // ─── DATABASE CONNECTION ───
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("✅ MongoDB Connected"))
-.catch(err => {
-  console.error("❌ MongoDB connection error:", err);
-  process.exit(1); // Exit process if DB connection fails
-});
-
+// ─── DATABASE CONNECTION ───
+mongoose.connect(process.env.MONGO_URI)  // removed options
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => {
+    console.error("❌ MongoDB connection error:", err);
+    process.exit(1); // Exit process if DB connection fails
+  });
 // ─── START SERVER ───
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
