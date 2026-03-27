@@ -1,7 +1,9 @@
+// routes/problem.js
 const express = require("express");
 const Problem = require("../models/Problem");
 const User = require("../models/User");
 const auth = require("../middleware/authMiddleware");
+
 const router = express.Router();
 
 // ➕ Add Problem
@@ -14,8 +16,9 @@ router.post("/add", auth, async (req, res) => {
 
     const days = [0, 2, 4, 7, 14, 20];
     const revisionDates = days.map(d => {
-      let date = new Date();
+      const date = new Date();
       date.setDate(date.getDate() + d);
+      date.setHours(0, 0, 0, 0);
       return date;
     });
 
@@ -39,7 +42,7 @@ router.post("/add", auth, async (req, res) => {
 // 📄 Get All Problems
 router.get("/all", auth, async (req, res) => {
   try {
-    const problems = await Problem.find({ userId: req.user.id });
+    const problems = await Problem.find({ userId: req.user.id }).sort({ _id: -1 });
     res.json(problems);
   } catch (err) {
     console.error(err);
@@ -52,17 +55,13 @@ router.get("/today", auth, async (req, res) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
 
     const problems = await Problem.find({
       userId: req.user.id,
-      revisionDates: {
-        $elemMatch: {
-          $gte: today,
-          $lt: tomorrow
-        }
-      }
+      revisionDates: { $elemMatch: { $gte: today, $lt: tomorrow } }
     });
 
     res.json(problems);
@@ -76,27 +75,26 @@ router.get("/today", auth, async (req, res) => {
 router.post("/complete/:id", auth, async (req, res) => {
   try {
     const problem = await Problem.findById(req.params.id);
-    const user = await User.findById(req.user.id);
+    if (!problem) return res.status(404).json({ msg: "Problem not found" });
 
-    if (!problem) {
-      return res.status(404).json({ msg: "Problem not found" });
-    }
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    problem.completedDates.push(today);
-    await problem.save();
+    // Only push if not already marked today
+    if (!problem.completedDates.some(d => d.getTime() === today.getTime())) {
+      problem.completedDates.push(today);
+      await problem.save();
+    }
 
-    // 🔥 Streak Logic
+    // 🔥 Streak logic
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
 
-    if (
-      user.lastCompletedDate &&
-      new Date(user.lastCompletedDate).getTime() === yesterday.getTime()
-    ) {
-      user.streak += 1;
+    if (user.lastCompletedDate && new Date(user.lastCompletedDate).getTime() === yesterday.getTime()) {
+      user.streak = (user.streak || 0) + 1;
     } else {
       user.streak = 1;
     }
