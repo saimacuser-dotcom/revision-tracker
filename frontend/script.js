@@ -1,6 +1,6 @@
 /* ─── CONFIG ─── */
   const BASE = "http://localhost:8000/api";
-
+  app.use(express.static('public'));
   /* ─── STATE ─── */
   let token           = localStorage.getItem("token");
   let allProblems     = [];
