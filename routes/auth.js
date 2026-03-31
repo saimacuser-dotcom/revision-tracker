@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/User");
-const Problem = require("../models/Problem"); // ✅ IMPORTANT
+const Problem = require("../models/Problem");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -99,7 +99,18 @@ router.post("/complete/:id", authMiddleware, async (req, res) => {
       await problem.save();
     }
 
-    // 🔥 today's problems
+    // 🔥 ALWAYS UPDATE HEATMAP (FIXED)
+    if (!user.activity) user.activity = [];
+
+    const existing = user.activity.find(a => a.date === today);
+
+    if (existing) {
+      existing.count = 1; // ✅ FIX
+    } else {
+      user.activity.push({ date: today, count: 1 });
+    }
+
+    // 🔥 GET TODAY PROBLEMS
     const todayProblems = await Problem.find({
       userId: req.user.id,
       revisionDates: today
@@ -109,14 +120,12 @@ router.post("/complete/:id", authMiddleware, async (req, res) => {
       p.completedDates.includes(today)
     );
 
-    // 🔥 STREAK + HEATMAP
+    // 🔥 STREAK LOGIC
     if (allDoneToday && todayProblems.length > 0) {
-
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const yStr = yesterday.toISOString().split("T")[0];
 
-      // ✅ FIXED FIELD NAME
       if (user.lastStreakDate === yStr) {
         user.streak = (user.streak || 0) + 1;
       } else if (user.lastStreakDate !== today) {
@@ -124,20 +133,9 @@ router.post("/complete/:id", authMiddleware, async (req, res) => {
       }
 
       user.lastStreakDate = today;
-
-      // 🔥 HEATMAP
-      if (!user.activity) user.activity = [];
-
-      const existing = user.activity.find(a => a.date === today);
-
-      if (existing) {
-        existing.count += 1;
-      } else {
-        user.activity.push({ date: today, count: 1 });
-      }
-
-      await user.save();
     }
+
+    await user.save();
 
     res.json({
       msg: "Marked done",
@@ -146,7 +144,7 @@ router.post("/complete/:id", authMiddleware, async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("COMPLETE ERROR:", err);
     res.status(500).json({ msg: "Server error" });
   }
 });
