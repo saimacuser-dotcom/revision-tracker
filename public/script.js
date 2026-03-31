@@ -2,10 +2,10 @@
 const BASE = "https://revision-tracker-c4fr.onrender.com/api";
 
 /* ─── STATE ─── */
-let token           = localStorage.getItem("token");
-let allProblems     = [];
-let activeFilter    = "All";
-let isLoginMode     = true;
+let token = localStorage.getItem("token");
+let allProblems = [];
+let activeFilter = "All";
+let isLoginMode = true;
 let pendingDeleteId = null;
 
 /* ─── BOOT ─── */
@@ -14,17 +14,17 @@ if (token) showApp();
 /* ─── AUTH TOGGLE ─── */
 function toggleAuth() {
   isLoginMode = !isLoginMode;
-  document.getElementById("authTitle").textContent      = isLoginMode ? "Welcome back" : "Create account";
-  document.getElementById("authSub").textContent        = isLoginMode ? "Sign in to continue your revision streak." : "Start tracking your DSA progress today.";
-  document.getElementById("authBtn").textContent        = isLoginMode ? "Sign In" : "Register";
+  document.getElementById("authTitle").textContent = isLoginMode ? "Welcome back" : "Create account";
+  document.getElementById("authSub").textContent = isLoginMode ? "Sign in to continue your revision streak." : "Start tracking your DSA progress today.";
+  document.getElementById("authBtn").textContent = isLoginMode ? "Sign In" : "Register";
   document.getElementById("authToggleText").textContent = isLoginMode ? "Don't have an account?" : "Already have an account?";
   document.getElementById("authToggleLink").textContent = isLoginMode ? " Register" : " Sign in";
-  document.getElementById("nameField").style.display    = isLoginMode ? "none" : "block";
+  document.getElementById("nameField").style.display = isLoginMode ? "none" : "block";
 }
 
 /* ─── AUTH SUBMIT ─── */
 async function submitAuth() {
-  const email    = val("email").trim();
+  const email = val("email").trim();
   const password = val("password").trim();
 
   if (!email || !password) {
@@ -41,7 +41,7 @@ async function submitAuth() {
       ? { email, password }
       : { email, password, name: val("displayName") };
 
-    const res  = await fetch(`${BASE}/${endpoint}`, {
+    const res = await fetch(`${BASE}/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
@@ -72,7 +72,7 @@ function showApp() {
   document.getElementById("app").classList.remove("hidden");
 
   const stored = localStorage.getItem("userEmail") || "user";
-  document.getElementById("userEmail").textContent  = stored;
+  document.getElementById("userEmail").textContent = stored;
   document.getElementById("userAvatar").textContent = stored.charAt(0).toUpperCase();
 
   getStreak();
@@ -89,8 +89,8 @@ function logout() {
 
 /* ─── ADD PROBLEM ─── */
 async function addProblem() {
-  const name       = val("name").trim();
-  const link       = val("link").trim();
+  const name = val("name").trim();
+  const link = val("link").trim();
   const difficulty = val("difficulty");
 
   if (!name) {
@@ -126,11 +126,14 @@ async function addProblem() {
 /* ─── GET STREAK ─── */
 async function getStreak() {
   try {
-    const res = await fetch(`${BASE}/user/streak`, {
+    const res = await fetch(`${BASE}/auth/streak`, {
       headers: { "Authorization": "Bearer " + token }
     });
+
     const data = await res.json();
+
     document.getElementById("streak").textContent = data.streak || 0;
+
   } catch {
     document.getElementById("streak").textContent = 0;
   }
@@ -245,13 +248,13 @@ async function getProblems() {
 
 /* ─── UPDATE STATS ─── */
 function updateStats() {
-  const total  = allProblems.length;
-  const easy   = allProblems.filter(p => p.difficulty === "Easy").length;
-  const hard   = allProblems.filter(p => p.difficulty === "Hard").length;
+  const total = allProblems.length;
+  const easy = allProblems.filter(p => p.difficulty === "Easy").length;
+  const hard = allProblems.filter(p => p.difficulty === "Hard").length;
 
   document.getElementById("totalCount").textContent = total;
-  document.getElementById("easyCount").textContent  = easy;
-  document.getElementById("hardCount").textContent  = hard;
+  document.getElementById("easyCount").textContent = easy;
+  document.getElementById("hardCount").textContent = hard;
   document.getElementById("countBadge").textContent = total;
 }
 
@@ -342,7 +345,7 @@ async function confirmDelete() {
 
 /* ─── CLOSE MODAL ON OVERLAY CLICK ─── */
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("deleteModal").addEventListener("click", function(e) {
+  document.getElementById("deleteModal").addEventListener("click", function (e) {
     if (e.target === this) closeModal();
   });
 });
@@ -373,17 +376,17 @@ function renderHeatmap(activity) {
     const d = new Date();
     d.setDate(today.getDate() - i);
 
-    const key   = d.toISOString().split("T")[0];
+    const key = d.toISOString().split("T")[0];
     const count = map[key] || 0;
 
     const cell = document.createElement("div");
     cell.classList.add("cell");
 
-    if      (count === 0)          { /* default empty */ }
-    else if (count <= 2)           cell.classList.add("low");
-    else if (count <= 4)           cell.classList.add("medium");
-    else if (count <= 6)           cell.classList.add("high");
-    else                           cell.classList.add("max");
+    if (count === 0) { /* default empty */ }
+    else if (count <= 2) cell.classList.add("low");
+    else if (count <= 4) cell.classList.add("medium");
+    else if (count <= 6) cell.classList.add("high");
+    else cell.classList.add("max");
 
     cell.title = `${key}: ${count} solved`;
     container.appendChild(cell);
@@ -396,7 +399,7 @@ let toastTimer = null;
 function showToast(msg, type = "success") {
   const toast = document.getElementById("toast");
   toast.textContent = msg;
-  toast.className   = `show ${type}`;
+  toast.className = `show ${type}`;
 
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => {
