@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -21,13 +20,13 @@ app.get("/", (req, res) => {
 });
 
 // ─── DATABASE CONNECTION ───
-// ─── DATABASE CONNECTION ───
-mongoose.connect(process.env.MONGO_URI)  // removed options
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => {
     console.error("❌ MongoDB connection error:", err);
-    process.exit(1); // Exit process if DB connection fails
+    process.exit(1); // Exit if DB connection fails
   });
+
 // ─── START SERVER ───
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000; // Render provides PORT in env
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
