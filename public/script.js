@@ -382,11 +382,18 @@ function renderHeatmap(activity) {
     const cell = document.createElement("div");
     cell.classList.add("cell");
 
-    if (count === 0) { /* default empty */ }
-    else if (count <= 2) cell.classList.add("low");
-    else if (count <= 4) cell.classList.add("medium");
-    else if (count <= 6) cell.classList.add("high");
-    else cell.classList.add("max");
+    // 🔥 GitHub-style intensity
+    if (count === 0) {
+      cell.classList.add("empty");
+    } else if (count === 1) {
+      cell.classList.add("lvl1");
+    } else if (count <= 3) {
+      cell.classList.add("lvl2");
+    } else if (count <= 5) {
+      cell.classList.add("lvl3");
+    } else {
+      cell.classList.add("lvl4");
+    }
 
     cell.title = `${key}: ${count} solved`;
     container.appendChild(cell);
