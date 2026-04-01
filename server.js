@@ -1,32 +1,33 @@
-const express = require("express");
+const express  = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
+const cors     = require("cors");
 require("dotenv").config();
 
 const app = express();
 
-// ─── MIDDLEWARE ───
+/* ─── MIDDLEWARE ─── */
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public")); // Serve frontend
+app.use(express.static("public"));
 
-// ─── ROUTES ───
-app.use("/api/auth", require("./routes/auth"));
+/* ─── ROUTES ─── */
+app.use("/api/auth",    require("./routes/auth"));
 app.use("/api/problem", require("./routes/problem"));
+app.use("/api/user",    require("./routes/auth"));   // /api/user/streak → auth router handles /streak
 
-// ─── ROOT ROUTE ───
+/* ─── ROOT ─── */
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
-// ─── DATABASE CONNECTION ───
+/* ─── DATABASE ─── */
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => {
     console.error("❌ MongoDB connection error:", err);
-    process.exit(1); // Exit if DB connection fails
+    process.exit(1);
   });
 
-// ─── START SERVER ───
-const PORT = process.env.PORT || 5000; // Render provides PORT in env
+/* ─── START ─── */
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
