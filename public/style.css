@@ -267,10 +267,10 @@ body::before {
 
 /* Dark-background-friendly greens */
 .cell.empty { background: var(--surface2); border-color: var(--border); }
-.cell.lvl1  { background: #1a4731; border-color: #22d47e33; }
-.cell.lvl2  { background: #166534; border-color: #22d47e55; }
-.cell.lvl3  { background: #15803d; border-color: #22d47e77; }
-.cell.lvl4  { background: #22d47e; border-color: #22d47eaa; }
+.cell.lvl1  { background: #166534; border-color: #22d47e55; }
+.cell.lvl2  { background: #1a7a3f; border-color: #22d47e77; }
+.cell.lvl3  { background: #1e9e4e; border-color: #22d47e99; }
+.cell.lvl4  { background: #22d47e; border-color: #22d47ecc; }
 
 /* ── ADD PANEL ── */
 .add-toggle-header {

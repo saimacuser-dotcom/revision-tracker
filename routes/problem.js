@@ -16,7 +16,7 @@ router.post("/add", authMiddleware, async (req, res) => {
     const today = new Date().toISOString().split("T")[0];
 
     // Spaced-repetition intervals: 1, 3, 7, 14, 30 days from now
-    const intervals = [1, 3, 7, 14, 30];
+    const intervals = [0, 1, 3, 7, 14, 30];
     const revisionDates = intervals.map(days => {
       const d = new Date();
       d.setDate(d.getDate() + days);
@@ -106,16 +106,16 @@ router.post("/complete/:id", authMiddleware, async (req, res) => {
       todayProblems.length > 0 &&
       todayProblems.every(p => p.completedDates.includes(today));
 
-    /* ── 3. Update streak + heatmap ── */
+    /* ── 3. Update heatmap ── */
     if (!user.activity) user.activity = [];
 
-    // Always increment heatmap count for each completion
     const existingActivity = user.activity.find(a => a.date === today);
     if (existingActivity) {
       existingActivity.count += 1;
     } else {
       user.activity.push({ date: today, count: 1 });
     }
+    user.markModified("activity"); // ✅ tell Mongoose the nested array changed
 
     // Only update streak once per day (when all done)
     if (allDoneToday && user.lastCompletedDate !== today) {
