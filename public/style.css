@@ -266,10 +266,11 @@ body::before {
 .cell:hover { transform: scale(1.3); }
 
 /* Dark-background-friendly greens */
-.cell.low    { background: #1a4731; border-color: #22d47e33; }
-.cell.medium { background: #166534; border-color: #22d47e55; }
-.cell.high   { background: #15803d; border-color: #22d47e77; }
-.cell.max    { background: #22d47e; border-color: #22d47eaa; }
+.cell.empty { background: var(--surface2); border-color: var(--border); }
+.cell.lvl1  { background: #1a4731; border-color: #22d47e33; }
+.cell.lvl2  { background: #166534; border-color: #22d47e55; }
+.cell.lvl3  { background: #15803d; border-color: #22d47e77; }
+.cell.lvl4  { background: #22d47e; border-color: #22d47eaa; }
 
 /* ── ADD PANEL ── */
 .add-toggle-header {
@@ -447,45 +448,6 @@ body::before {
 @keyframes scaleIn { from { transform: scale(0.95); opacity: 0 } to { transform: scale(1); opacity: 1 } }
 @keyframes slideIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
 @keyframes shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
-/* 🔥 HEATMAP CONTAINER */
-#heatmap {
-  display: grid;
-  grid-template-columns: repeat(18, 12px);
-  gap: 4px;
-  justify-content: start;
-}
-
-/* 🔲 CELL BASE */
-.cell {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  background: #ebedf0;
-  transition: transform 0.15s ease, background 0.2s ease;
-}
-
-/* 🌑 EMPTY */
-.cell.empty {
-  background: #ebedf0;
-}
-
-/* 🟢 LEVELS (GitHub style) */
-.cell.lvl1 { background: #9be9a8; }
-.cell.lvl2 { background: #40c463; }
-.cell.lvl3 { background: #30a14e; }
-.cell.lvl4 { background: #216e39; }
-
-/* ✨ HOVER EFFECT */
-.cell:hover {
-  transform: scale(1.4);
-  cursor: pointer;
-}
-#heatmap {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(7, 12px);
-  gap: 4px;
-}
 
 /* ── RESPONSIVE ── */
 @media (max-width: 720px) {
