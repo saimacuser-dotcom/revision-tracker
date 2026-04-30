@@ -2,10 +2,10 @@
 const BASE = "https://revision-tracker-c4fr.onrender.com/api";
 
 /* ─── STATE ─── */
-let token = localStorage.getItem("token");
-let allProblems = [];
-let activeFilter = "All";
-let isLoginMode = true;
+let token           = localStorage.getItem("token");
+let allProblems     = [];
+let activeFilter    = "All";
+let isLoginMode     = true;
 let pendingDeleteId = null;
 
 /* ─── BOOT ─── */
@@ -14,17 +14,17 @@ if (token) showApp();
 /* ─── AUTH TOGGLE ─── */
 function toggleAuth() {
   isLoginMode = !isLoginMode;
-  document.getElementById("authTitle").textContent = isLoginMode ? "Welcome back" : "Create account";
-  document.getElementById("authSub").textContent = isLoginMode ? "Sign in to continue your revision streak." : "Start tracking your DSA progress today.";
-  document.getElementById("authBtn").textContent = isLoginMode ? "Sign In" : "Register";
-  document.getElementById("authToggleText").textContent = isLoginMode ? "Don't have an account?" : "Already have an account?";
-  document.getElementById("authToggleLink").textContent = isLoginMode ? " Register" : " Sign in";
-  document.getElementById("nameField").style.display = isLoginMode ? "none" : "block";
+  document.getElementById("authTitle").textContent      = isLoginMode ? "Welcome back"                             : "Create account";
+  document.getElementById("authSub").textContent        = isLoginMode ? "Sign in to continue your revision streak." : "Start tracking your DSA progress today.";
+  document.getElementById("authBtn").textContent        = isLoginMode ? "Sign In"                                  : "Register";
+  document.getElementById("authToggleText").textContent = isLoginMode ? "Don't have an account?"                   : "Already have an account?";
+  document.getElementById("authToggleLink").textContent = isLoginMode ? " Register"                                : " Sign in";
+  document.getElementById("nameField").style.display    = isLoginMode ? "none"                                     : "block";
 }
 
-/* ─── AUTH SUBMIT ─── */
+/* ─── SUBMIT AUTH ─── */
 async function submitAuth() {
-  const email = val("email").trim();
+  const email    = val("email").trim();
   const password = val("password").trim();
 
   if (!email || !password) {
@@ -34,14 +34,15 @@ async function submitAuth() {
 
   const btn = document.getElementById("authBtn");
   btn.classList.add("loading");
+  btn.textContent = isLoginMode ? "Signing in…" : "Registering…";
 
   try {
     const endpoint = isLoginMode ? "auth/login" : "auth/register";
-    const body = isLoginMode
+    const body     = isLoginMode
       ? { email, password }
       : { email, password, name: val("displayName") };
 
-    const res = await fetch(`${BASE}/${endpoint}`, {
+    const res  = await fetch(`${BASE}/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
@@ -54,16 +55,17 @@ async function submitAuth() {
       localStorage.setItem("token", token);
       localStorage.setItem("userEmail", email);
       showApp();
-      showToast("Signed in ✓", "success");
+      showToast("Signed in successfully ✓", "success");
     } else {
       showToast(data.msg || "Auth failed", "error");
     }
 
   } catch {
-    showToast("Server error", "error");
+    showToast("Could not connect to server", "error");
   }
 
   btn.classList.remove("loading");
+  btn.textContent = isLoginMode ? "Sign In" : "Register";
 }
 
 /* ─── SHOW APP ─── */
@@ -72,34 +74,38 @@ function showApp() {
   document.getElementById("app").classList.remove("hidden");
 
   const stored = localStorage.getItem("userEmail") || "user";
-  document.getElementById("userEmail").textContent = stored;
+  document.getElementById("userEmail").textContent  = stored;
   document.getElementById("userAvatar").textContent = stored.charAt(0).toUpperCase();
 
-  getStreak();
   getTodayProblems();
   getProblems();
-  loadHeatmap();
 }
 
 /* ─── LOGOUT ─── */
 function logout() {
-  localStorage.clear();
+  localStorage.removeItem("token");
+  localStorage.removeItem("userEmail");
   location.reload();
+}
+
+/* ─── TOGGLE ADD PANEL ─── */
+function toggleAddPanel() {
+  document.getElementById("addPanel").classList.toggle("open");
 }
 
 /* ─── ADD PROBLEM ─── */
 async function addProblem() {
-  const name = val("name").trim();
-  const link = val("link").trim();
+  const name       = val("name").trim();
+  const link       = val("link").trim();
   const difficulty = val("difficulty");
 
   if (!name) {
-    showToast("Problem name required", "error");
+    showToast("Problem name is required", "error");
     return;
   }
 
   try {
-    const res = await fetch(`${BASE}/problem/add`, {
+    const res  = await fetch(`${BASE}/problem/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -108,14 +114,16 @@ async function addProblem() {
       body: JSON.stringify({ name, link, difficulty })
     });
 
+    const data = await res.json();
+
     if (res.ok) {
-      showToast("Added ✓", "success");
+      showToast(`"${name}" added ✓`, "success");
       document.getElementById("name").value = "";
       document.getElementById("link").value = "";
       getTodayProblems();
       getProblems();
     } else {
-      showToast("Failed to add", "error");
+      showToast(data.msg || "Failed to add", "error");
     }
 
   } catch {
@@ -123,26 +131,10 @@ async function addProblem() {
   }
 }
 
-/* ─── GET STREAK ─── */
-async function getStreak() {
-  try {
-    const res = await fetch(`${BASE}/auth/streak`, {
-      headers: { "Authorization": "Bearer " + token }
-    });
-
-    const data = await res.json();
-
-    document.getElementById("streak").textContent = data.streak || 0;
-
-  } catch {
-    document.getElementById("streak").textContent = 0;
-  }
-}
-
-/* ─── GET TODAY PROBLEMS ─── */
+/* ─── GET TODAY'S PROBLEMS ─── */
 async function getTodayProblems() {
   try {
-    const res = await fetch(`${BASE}/problem/today`, {
+    const res  = await fetch(`${BASE}/problem/today`, {
       headers: { "Authorization": "Bearer " + token }
     });
     const data = await res.json();
@@ -156,22 +148,23 @@ async function getTodayProblems() {
 function renderTodayProblems(problems) {
   const list = document.getElementById("todayList");
   list.innerHTML = "";
-
   document.getElementById("todayBadge").textContent = problems.length;
 
   if (!problems.length) {
     list.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">🎉</div>
-        <h4>All done!</h4>
-        <p>No problems due today</p>
+        <h4>All caught up!</h4>
+        <p>No problems due today. Come back tomorrow.</p>
       </div>`;
     return;
   }
 
-  problems.forEach(p => {
+  problems.forEach((p, i) => {
     const li = document.createElement("li");
     li.className = "problem-item";
+    li.style.animationDelay = `${i * 40}ms`;
+    li.id = `today-${p._id}`;
 
     li.innerHTML = `
       <div class="problem-info">
@@ -179,10 +172,10 @@ function renderTodayProblems(problems) {
         <div class="problem-meta">
           <span class="diff-badge ${escHtml(p.difficulty || 'Easy')}">${escHtml(p.difficulty || 'Easy')}</span>
           <span class="due-tag today">Due today</span>
-          ${p.link ? `<a class="problem-link" href="${escHtml(p.link)}" target="_blank" rel="noopener">↗ Link</a>` : ""}
+          ${p.link ? `<a class="problem-link" href="${escHtml(p.link)}" target="_blank" rel="noopener">↗ Open</a>` : ""}
         </div>
       </div>
-      <button class="btn-mark-done" onclick="markDone('${p._id}', this)">Done ✓</button>
+      <button class="btn-mark-done" onclick="markDone('${p._id}', this)">Mark Done ✓</button>
     `;
 
     list.appendChild(li);
@@ -191,11 +184,11 @@ function renderTodayProblems(problems) {
 
 /* ─── MARK DONE ─── */
 async function markDone(id, btn) {
-  btn.disabled = true;
-  btn.textContent = "Saving...";
+  btn.disabled    = true;
+  btn.textContent = "Saving…";
 
   try {
-    const res = await fetch(`${BASE}/problem/complete/${id}`, {
+    const res  = await fetch(`${BASE}/problem/complete/${id}`, {
       method: "POST",
       headers: { "Authorization": "Bearer " + token }
     });
@@ -203,38 +196,29 @@ async function markDone(id, btn) {
     const data = await res.json();
 
     if (res.ok) {
+      const item = document.getElementById(`today-${id}`);
+      if (item) { item.style.transition = "opacity 0.4s"; item.style.opacity = "0.35"; }
       btn.textContent = "Done ✓";
-
-      if (data.streak !== undefined) {
-        document.getElementById("streak").textContent = data.streak;
-      }
-
-      if (data.allDoneToday) {
-        showToast(`🔥 Streak: ${data.streak}`, "success");
-      } else {
-        showToast("Marked ✓", "success");
-      }
-
-      getTodayProblems();
-      loadHeatmap();
-
+      document.getElementById("streak").textContent = data.streak || 0;
+      showToast(`🔥 Streak: ${data.streak} day${data.streak !== 1 ? "s" : ""}`, "success");
     } else {
-      btn.disabled = false;
-      btn.textContent = "Done ✓";
+      btn.disabled    = false;
+      btn.textContent = "Mark Done ✓";
       showToast(data.msg || "Error", "error");
     }
 
   } catch {
-    btn.disabled = false;
-    btn.textContent = "Done ✓";
+    btn.disabled    = false;
+    btn.textContent = "Mark Done ✓";
     showToast("Server error", "error");
   }
 }
 
 /* ─── GET ALL PROBLEMS ─── */
 async function getProblems() {
+  showSkeletons();
   try {
-    const res = await fetch(`${BASE}/problem/all`, {
+    const res  = await fetch(`${BASE}/problem/all`, {
       headers: { "Authorization": "Bearer " + token }
     });
     const data = await res.json();
@@ -248,23 +232,17 @@ async function getProblems() {
 
 /* ─── UPDATE STATS ─── */
 function updateStats() {
-  const total = allProblems.length;
-  const easy = allProblems.filter(p => p.difficulty === "Easy").length;
-  const hard = allProblems.filter(p => p.difficulty === "Hard").length;
-
-  document.getElementById("totalCount").textContent = total;
-  document.getElementById("easyCount").textContent = easy;
-  document.getElementById("hardCount").textContent = hard;
-  document.getElementById("countBadge").textContent = total;
+  document.getElementById("totalCount").textContent = allProblems.length;
+  document.getElementById("easyCount").textContent  = allProblems.filter(p => p.difficulty === "Easy").length;
+  document.getElementById("hardCount").textContent  = allProblems.filter(p => p.difficulty === "Hard").length;
+  document.getElementById("countBadge").textContent = allProblems.length;
 }
 
-/* ─── SET FILTER ─── */
+/* ─── FILTER ─── */
 function setFilter(filter, btn) {
   activeFilter = filter;
-
   document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
-
   renderProblems();
 }
 
@@ -277,30 +255,52 @@ function renderProblems() {
     ? allProblems
     : allProblems.filter(p => p.difficulty === activeFilter);
 
+  document.getElementById("countBadge").textContent = filtered.length;
+
   if (!filtered.length) {
     list.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📭</div>
-        <h4>No problems here</h4>
-        <p>${activeFilter === "All" ? "Add your first problem above!" : `No ${activeFilter} problems yet.`}</p>
+        <h4>${activeFilter === "All" ? "No problems yet" : "No " + activeFilter + " problems"}</h4>
+        <p>${activeFilter === "All" ? "Add your first problem using the panel above." : "Try a different filter."}</p>
       </div>`;
     return;
   }
 
-  filtered.forEach(p => {
+  const todayMs = new Date().setHours(0, 0, 0, 0);
+
+  filtered.forEach((p, i) => {
     const li = document.createElement("li");
     li.className = "problem-item";
+    li.style.animationDelay = `${i * 40}ms`;
+
+    // Next upcoming revision date
+    const upcoming = (p.revisionDates || [])
+      .map(d => new Date(d).setHours(0, 0, 0, 0))
+      .filter(d => d >= todayMs)
+      .sort((a, b) => a - b);
+
+    let dueTag = "";
+    if (upcoming.length > 0) {
+      const diff  = Math.round((upcoming[0] - todayMs) / 86400000);
+      const label = diff === 0 ? "Due today" : diff === 1 ? "Due tomorrow" : `Due in ${diff}d`;
+      const cls   = diff === 0 ? "due-tag today" : "due-tag";
+      dueTag = `<span class="${cls}">${label}</span>`;
+    }
 
     li.innerHTML = `
       <div class="problem-info">
         <div class="problem-name">${escHtml(p.name)}</div>
         <div class="problem-meta">
           <span class="diff-badge ${escHtml(p.difficulty || 'Easy')}">${escHtml(p.difficulty || 'Easy')}</span>
-          ${p.link ? `<a class="problem-link" href="${escHtml(p.link)}" target="_blank" rel="noopener">↗ Link</a>` : ""}
+          ${dueTag}
+          ${p.link
+            ? `<a class="problem-link" href="${escHtml(p.link)}" target="_blank" rel="noopener">↗ Open problem</a>`
+            : `<span style="font-size:11px;color:var(--muted)">No link</span>`}
         </div>
       </div>
       <div class="problem-actions">
-        <button class="action-btn" title="Delete" onclick="askDelete('${p._id}')">🗑</button>
+        <button class="action-btn" title="Delete" onclick="askDelete('${p._id}')">✕</button>
       </div>
     `;
 
@@ -308,13 +308,7 @@ function renderProblems() {
   });
 }
 
-/* ─── TOGGLE ADD PANEL ─── */
-function toggleAddPanel() {
-  const panel = document.getElementById("addPanel");
-  panel.classList.toggle("open");
-}
-
-/* ─── DELETE FLOW ─── */
+/* ─── DELETE ─── */
 function askDelete(id) {
   pendingDeleteId = id;
   document.getElementById("deleteModal").classList.remove("hidden");
@@ -327,77 +321,32 @@ function closeModal() {
 
 async function confirmDelete() {
   if (!pendingDeleteId) return;
+  closeModal();
 
   try {
-    await fetch(`${BASE}/problem/${pendingDeleteId}`, {
+    const res = await fetch(`${BASE}/problem/${pendingDeleteId}`, {
       method: "DELETE",
       headers: { "Authorization": "Bearer " + token }
     });
 
-    closeModal();
-    getProblems();
-    showToast("Deleted", "success");
-
-  } catch {
-    showToast("Error deleting", "error");
-  }
-}
-
-/* ─── CLOSE MODAL ON OVERLAY CLICK ─── */
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("deleteModal").addEventListener("click", function (e) {
-    if (e.target === this) closeModal();
-  });
-});
-
-/* ─── HEATMAP ─── */
-async function loadHeatmap() {
-  try {
-    const res = await fetch(`${BASE}/auth/heatmap`, {
-      headers: { "Authorization": "Bearer " + token }
-    });
-    const data = await res.json();
-    renderHeatmap(data);
-  } catch {
-    console.log("Heatmap error");
-  }
-}
-
-function renderHeatmap(activity) {
-  const container = document.getElementById("heatmap");
-  container.innerHTML = "";
-
-  const map = {};
-  activity.forEach(a => { map[a.date] = a.count; });
-
-  const today = new Date();
-
-  for (let i = 89; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-
-    const key = d.toISOString().split("T")[0];
-    const count = map[key] || 0;
-
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
-
-    // 🔥 GitHub-style intensity
-    if (count === 0) {
-      cell.classList.add("empty");
-    } else if (count === 1) {
-      cell.classList.add("lvl1");
-    } else if (count <= 3) {
-      cell.classList.add("lvl2");
-    } else if (count <= 5) {
-      cell.classList.add("lvl3");
+    if (res.ok) {
+      allProblems = allProblems.filter(p => p._id !== pendingDeleteId);
+      renderProblems();
+      updateStats();
+      showToast("Problem removed", "success");
     } else {
-      cell.classList.add("lvl4");
+      showToast("Could not delete", "error");
     }
 
-    cell.title = `${key}: ${count} solved`;
-    container.appendChild(cell);
+  } catch {
+    showToast("Server error", "error");
   }
+}
+
+/* ─── SKELETONS ─── */
+function showSkeletons() {
+  document.getElementById("list").innerHTML =
+    [1, 2, 3].map(() => `<div class="skeleton"></div>`).join("");
 }
 
 /* ─── TOAST ─── */
@@ -407,22 +356,33 @@ function showToast(msg, type = "success") {
   const toast = document.getElementById("toast");
   toast.textContent = msg;
   toast.className = `show ${type}`;
-
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toast.className = "";
-  }, 3000);
+  toastTimer = setTimeout(() => { toast.className = ""; }, 2800);
 }
 
-/* ─── UTIL ─── */
-function val(id) {
-  return document.getElementById(id).value;
-}
+/* ─── HELPERS ─── */
+function val(id) { return document.getElementById(id).value; }
 
 function escHtml(s) {
   return (s || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g,  "&amp;")
+    .replace(/</g,  "&lt;")
+    .replace(/>/g,  "&gt;")
+    .replace(/"/g,  "&quot;");
 }
+
+/* ─── KEYBOARD SHORTCUTS ─── */
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !document.getElementById("authPage").classList.contains("hidden")) submitAuth();
+  if (e.key === "Escape") closeModal();
+});
+
+/* ─── CLOSE MODAL ON OVERLAY CLICK ─── */
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("deleteModal");
+  if (modal) {
+    modal.addEventListener("click", function (e) {
+      if (e.target === this) closeModal();
+    });
+  }
+});
